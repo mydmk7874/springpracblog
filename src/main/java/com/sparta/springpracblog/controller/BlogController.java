@@ -5,6 +5,8 @@ import com.sparta.springpracblog.entity.Blog;
 import com.sparta.springpracblog.repository.BlogRepository;
 import com.sparta.springpracblog.service.BlogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,8 +28,14 @@ public class BlogController {
         return blogService.createBlog(requestDto);
     }
 
+//    @GetMapping("/api/posts/{id}")
+//    public Optional<Blog> getBlog(@PathVariable Long id) {
+//        return blogService.getBlog(id);
+//    }
+//    Optional 쓰지말자
+
     @GetMapping("/api/posts/{id}")
-    public Optional<Blog> getBlog(@PathVariable Long id) {
+    public Blog getBlog(@PathVariable Long id) {
         return blogService.getBlog(id);
     }
 
@@ -40,5 +48,10 @@ public class BlogController {
     public Long deleteBlog(@PathVariable Long id, @RequestBody String password) {
         return blogService.deleteBlog(id,password);
     }
+
+//    @GetMapping("/api/apitest")
+//    public ResponseEntity responseEntity() {
+//        return new ResponseEntity("실패", HttpStatus.BAD_REQUEST);
+//    }
 
 }
