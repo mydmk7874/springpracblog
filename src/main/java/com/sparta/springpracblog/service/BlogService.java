@@ -1,17 +1,23 @@
 package com.sparta.springpracblog.service;
 
 
+import com.sparta.springpracblog.dto.BlogListResponseDto;
 import com.sparta.springpracblog.dto.BlogRequestDto;
+import com.sparta.springpracblog.dto.BlogResponseDto;
 import com.sparta.springpracblog.entity.Blog;
+import com.sparta.springpracblog.entity.User;
+import com.sparta.springpracblog.jwt.JwtUtil;
 import com.sparta.springpracblog.repository.BlogRepository;
+import com.sparta.springpracblog.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,16 +25,46 @@ public class BlogService {
 
     private final BlogRepository blogRepository;
 
+    private final UserRepository userRepository;
+
+    private final JwtUtil jwtUtil;
+
     @Transactional
-    public Blog createBlog(BlogRequestDto requestDto) {
-        Blog blog = new Blog(requestDto);
-        blogRepository.save(blog);
-        return blog;
+    public BlogResponseDto createBlog(BlogRequestDto requestDto, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("잘못된 토큰입니다.");
+            }
+
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            Blog blog = new Blog(requestDto, user.getUsername());
+            blogRepository.save(blog);
+
+            return new BlogResponseDto(blog);
+        } else {
+            return null;
+        }
     }
 
     @Transactional(readOnly = true)
-    public List<Blog> getBlogs() {
-        return blogRepository.findAllByOrderByCreatedAtDesc();
+    public BlogListResponseDto getBlogs() {
+        BlogListResponseDto responseDto = new BlogListResponseDto();
+
+        List<Blog> blogList = blogRepository.findAllByOrderByCreatedAtDesc();
+
+        for(Blog blog : blogList) {
+            responseDto.addBlog(new BlogResponseDto(blog));
+        }
+
+        return responseDto;
     }
 
 //    @Transactional(readOnly = true)
@@ -39,35 +75,71 @@ public class BlogService {
 //    findById()는 리턴값이 Optional이라서 그대로 쓰지 말고 예외처리로 null일 경우를 처리해줘야한다
 
     @Transactional(readOnly = true)
-    public Blog getBlog(Long id) {
-        return blogRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 글입니다.")
-        );
-    }
-
-    @Transactional
-    public Long update(Long id, BlogRequestDto requestDto) {
+    public BlogResponseDto getBlog(Long id) {
         Blog blog = blogRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 글입니다.")
         );
-        if (blog.getPassword().equals(requestDto.getPassword())) {
+        return new BlogResponseDto(blog);
+    }
+
+    @Transactional
+    public BlogResponseDto update(Long id, BlogRequestDto requestDto, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("잘못된 토큰입니다.");
+            }
+
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            Blog blog = blogRepository.findById(id).orElseThrow(
+                    () -> new IllegalArgumentException("존재하지 않는 글입니다.")
+            );
+
+            if(!blog.getUsername().equals(user.getUsername())) {
+                throw new IllegalArgumentException("해당 사용자가 작성한 글이 아닙니다.");
+            }
+
             blog.update(requestDto);
-            return blog.getId();
+            return new BlogResponseDto(blog);
         } else {
-            return -1L;
+            return null;
         }
     }
 
     @Transactional
-    public Long deleteBlog(Long id, String password) {
-        Blog blog = blogRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 글입니다.")
-        );
-        if (blog.getPassword().equals(password)) {
+    public ResponseEntity deleteBlog(Long id, HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getUserInfoFromToken(token);
+            } else {
+                throw new IllegalArgumentException("잘못된 토큰입니다.");
+            }
+
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+
+            Blog blog = blogRepository.findById(id).orElseThrow(
+                    () -> new IllegalArgumentException("존재하지 않는 글입니다.")
+            );
+
+            if(!blog.getUsername().equals(user.getUsername())) {
+                throw new IllegalArgumentException("해당 사용자가 작성한 글이 아닙니다.");
+            }
             blogRepository.deleteById(id);
-            return id;
+            return new ResponseEntity("성공", HttpStatus.OK);
         } else {
-            return -1L; //return new ResponseEntity("실패", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("실패", HttpStatus.BAD_REQUEST);
         }
     }
 

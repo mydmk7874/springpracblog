@@ -2,9 +2,10 @@ package com.sparta.springpracblog.entity;
 
 
 import com.sparta.springpracblog.dto.BlogRequestDto;
+import com.sparta.springpracblog.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
+
 
 import javax.persistence.*;
 
@@ -20,34 +21,29 @@ public class Blog extends Timestamped {
     @Column(nullable = false)
     private String title;
 
+//    @Embedded
+//    private User user;
     @Column(nullable = false)
-    private String author;
-
-    @Column(nullable = false)
-    private String password;
+    private String username;
 
     @Column(nullable = false)
     private String content;
 
-    public Blog(String title, String author, String password, String content) {
+    public Blog(String title, String username, String content) {
         this.title = title;
-        this.author = author;
-        this.password = password;
         this.content = content;
+        this.username = username;
     }
 
-    public Blog(BlogRequestDto requestDto) {
+    public Blog(BlogRequestDto requestDto, String username) {
         this.title = requestDto.getTitle();
-        this.author = requestDto.getAuthor();
-        this.password = requestDto.getPassword();
         this.content = requestDto.getContent();
+        this.username = username;
     }
 
 
     public void update(BlogRequestDto requestDto) {
         this.title = requestDto.getTitle();
-        this.author = requestDto.getAuthor();
-        this.password = requestDto.getPassword();
         this.content = requestDto.getContent();
     }
 }

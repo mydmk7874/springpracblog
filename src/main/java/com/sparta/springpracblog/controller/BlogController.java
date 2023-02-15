@@ -1,6 +1,8 @@
 package com.sparta.springpracblog.controller;
 
+import com.sparta.springpracblog.dto.BlogListResponseDto;
 import com.sparta.springpracblog.dto.BlogRequestDto;
+import com.sparta.springpracblog.dto.BlogResponseDto;
 import com.sparta.springpracblog.entity.Blog;
 import com.sparta.springpracblog.repository.BlogRepository;
 import com.sparta.springpracblog.service.BlogService;
@@ -9,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,13 +22,13 @@ public class BlogController {
     private final BlogService blogService;
 
     @GetMapping("/api/posts")
-    public List<Blog> getBlogs() {
+    public BlogListResponseDto getBlogs() {
         return blogService.getBlogs();
     }
 
     @PostMapping("/api/posts")
-    public Blog createBlog(@RequestBody BlogRequestDto requestDto) {
-        return blogService.createBlog(requestDto);
+    public BlogResponseDto createBlog(@RequestBody BlogRequestDto requestDto, HttpServletRequest request) {
+        return blogService.createBlog(requestDto, request);
     }
 
 //    @GetMapping("/api/posts/{id}")
@@ -35,18 +38,18 @@ public class BlogController {
 //    Optional 쓰지말자
 
     @GetMapping("/api/posts/{id}")
-    public Blog getBlog(@PathVariable Long id) {
+    public BlogResponseDto getBlog(@PathVariable Long id) {
         return blogService.getBlog(id);
     }
 
     @PutMapping("/api/posts/{id}")
-    public Long updateBlog(@PathVariable Long id, @RequestBody BlogRequestDto requestDto) {
-        return blogService.update(id, requestDto);
+    public BlogResponseDto updateBlog(@PathVariable Long id, @RequestBody BlogRequestDto requestDto, HttpServletRequest request) {
+        return blogService.update(id, requestDto, request);
     }
 
     @DeleteMapping("/api/posts/{id}")
-    public Long deleteBlog(@PathVariable Long id, @RequestBody String password) {
-        return blogService.deleteBlog(id,password);
+    public ResponseEntity deleteBlog(@PathVariable Long id, HttpServletRequest request) {
+        return blogService.deleteBlog(id,request);
     }
 
 //    @GetMapping("/api/apitest")
