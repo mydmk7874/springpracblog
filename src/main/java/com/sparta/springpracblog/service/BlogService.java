@@ -114,7 +114,7 @@ public class BlogService {
     }
 
     @Transactional
-    public ResponseEntity deleteBlog(Long id, HttpServletRequest request) {
+    public ResponseEntity<String> deleteBlog(Long id, HttpServletRequest request) {
         String token = jwtUtil.resolveToken(request);
         Claims claims;
 
@@ -137,9 +137,9 @@ public class BlogService {
                 throw new IllegalArgumentException("해당 사용자가 작성한 글이 아닙니다.");
             }
             blogRepository.deleteById(id);
-            return new ResponseEntity("성공", HttpStatus.OK);
+            return new ResponseEntity<>("성공", HttpStatus.OK);
         } else {
-            return new ResponseEntity("실패", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("실패", HttpStatus.BAD_REQUEST);
         }
     }
 

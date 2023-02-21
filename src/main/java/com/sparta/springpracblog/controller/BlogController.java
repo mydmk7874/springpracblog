@@ -48,9 +48,10 @@ public class BlogController {
     }
 
     @DeleteMapping("/api/posts/{id}")
-    public ResponseEntity deleteBlog(@PathVariable Long id, HttpServletRequest request) {
+    public ResponseEntity<String> deleteBlog(@PathVariable Long id, HttpServletRequest request) {
         return blogService.deleteBlog(id,request);
     }
+    //ResponseEntity<T> <T> 가능하면 꼭 쓰자
 
 //    @GetMapping("/api/apitest")
 //    public ResponseEntity responseEntity() {
