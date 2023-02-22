@@ -3,6 +3,7 @@ package com.sparta.springpracblog.service;
 import com.sparta.springpracblog.dto.LoginRequestDto;
 import com.sparta.springpracblog.dto.SignupRequestDto;
 import com.sparta.springpracblog.entity.User;
+import com.sparta.springpracblog.entity.UserRoleEnum;
 import com.sparta.springpracblog.jwt.JwtUtil;
 import com.sparta.springpracblog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final JwtUtil jwtUtil;
+    private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
 
     @Transactional
     public void signup(SignupRequestDto signupRequestDto) {
@@ -31,7 +33,16 @@ public class UserService {
             throw new IllegalArgumentException("중복된 아이디입니다.");
         }
 
-        User user = new User(username, password);
+        UserRoleEnum role = UserRoleEnum.USER;
+        if (signupRequestDto.isAdmin()) {
+            if (!signupRequestDto.getAdminToken().equals(ADMIN_TOKEN)) {
+                throw new IllegalArgumentException("관리자 암호가 틀려 등록이 불가능합니다.");
+            }
+            role = UserRoleEnum.ADMIN;
+        }
+
+
+        User user = new User(username, password, role);
         userRepository.save(user);
     }
 
@@ -48,7 +59,7 @@ public class UserService {
             throw new IllegalArgumentException("비밀번호가 틀립니다.");
         }
 
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername()));
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, jwtUtil.createToken(user.getUsername(), user.getRole()));
     }
 
 

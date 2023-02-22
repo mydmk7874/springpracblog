@@ -22,12 +22,17 @@ public class User {
     @Column(unique = true)
     private String username;
 
-    @Pattern(regexp = "[a-zA-Z1-9]{8,15}")
+    @Pattern(regexp = "[a-zA-Z1-9`~!@#$%^&*()\\-_=+]{8,15}")
     private String password;
 
-    public User(String username, String password) {
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private UserRoleEnum role;
+
+    public User(String username, String password, UserRoleEnum role) {
         this.username = username;
         this.password = password;
+        this.role = role;
     }
 
 }

@@ -2,12 +2,13 @@ package com.sparta.springpracblog.entity;
 
 
 import com.sparta.springpracblog.dto.BlogRequestDto;
-import com.sparta.springpracblog.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Entity
@@ -23,22 +24,27 @@ public class Blog extends Timestamped {
 
 //    @Embedded
 //    private User user;
-    @Column(nullable = false)
-    private String username;
+
+    @ManyToOne
+    @JoinColumn(name = "USER_ID", nullable = false)
+    private User user;
 
     @Column(nullable = false)
     private String content;
 
-    public Blog(String title, String username, String content) {
+    @OneToMany(mappedBy = "blog")
+    private List<Comment> comments = new ArrayList<>();
+
+    public Blog(String title, User user, String content) {
         this.title = title;
         this.content = content;
-        this.username = username;
+        this.user = user;
     }
 
-    public Blog(BlogRequestDto requestDto, String username) {
+    public Blog(BlogRequestDto requestDto, User user) {
         this.title = requestDto.getTitle();
         this.content = requestDto.getContent();
-        this.username = username;
+        this.user = user;
     }
 
 
