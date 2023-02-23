@@ -31,28 +31,12 @@ public class BlogService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public BlogResponseDto createBlog(BlogRequestDto requestDto, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public BlogResponseDto createBlog(BlogRequestDto requestDto, User user) {
 
             Blog blog = new Blog(requestDto, user);
             blogRepository.save(blog);
 
             return new BlogResponseDto(blog);
-        } else {
-            return null;
-        }
     }
 
     @Transactional(readOnly = true)
@@ -84,20 +68,7 @@ public class BlogService {
     }
 
     @Transactional
-    public BlogResponseDto update(Long id, BlogRequestDto requestDto, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public BlogResponseDto update(Long id, BlogRequestDto requestDto, User user) {
 
             Blog blog = blogRepository.findById(id).orElseThrow(
                     () -> new IllegalArgumentException("존재하지 않는 글입니다.")
@@ -109,40 +80,20 @@ public class BlogService {
 
             blog.update(requestDto);
             return new BlogResponseDto(blog);
-        } else {
-            return null;
-        }
     }
 
     @Transactional
-    public ResponseEntity<String> deleteBlog(Long id, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public ResponseEntity<String> deleteBlog(Long id, User user) {
 
             Blog blog = blogRepository.findById(id).orElseThrow(
                     () -> new IllegalArgumentException("존재하지 않는 글입니다.")
             );
-
 
             if(user.getRole() == UserRoleEnum.USER && !blog.getUser().getUsername().equals(user.getUsername())) {
                 throw new IllegalArgumentException("해당 사용자가 작성한 글이 아닙니다.");
             }
             blogRepository.deleteById(id);
             return new ResponseEntity<>("성공", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("실패", HttpStatus.BAD_REQUEST);
-        }
     }
 
 }

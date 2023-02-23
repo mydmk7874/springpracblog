@@ -31,20 +31,7 @@ public class CommentService {
     private final JwtUtil jwtUtil;
 
     @Transactional
-    public CommentResponseDto createComment(Long id, CommentRequestDto requestDto, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public CommentResponseDto createComment(Long id, CommentRequestDto requestDto, User user) {
 
             Blog blog = blogRepository.findById(id).orElseThrow(
                     () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
@@ -54,26 +41,10 @@ public class CommentService {
             commentRepository.save(comment);
 
             return new CommentResponseDto(comment);
-        } else {
-            return null;
-        }
     }
 
     @Transactional
-    public CommentResponseDto update(Long blogId, Long commentId, CommentRequestDto requestDto, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public CommentResponseDto update(Long blogId, Long commentId, CommentRequestDto requestDto, User user) {
 
             Blog blog = blogRepository.findById(blogId).orElseThrow(
                     () -> new IllegalArgumentException("존재하지 않는 글입니다.")
@@ -89,26 +60,10 @@ public class CommentService {
 
             comment.update(requestDto);
             return new CommentResponseDto(comment);
-        } else {
-            return null;
-        }
     }
 
     @Transactional
-    public ResponseEntity<String> deleteComment(Long blogId, Long commentId, HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
-        Claims claims;
-
-        if (token != null) {
-            if (jwtUtil.validateToken(token)) {
-                claims = jwtUtil.getUserInfoFromToken(token);
-            } else {
-                throw new IllegalArgumentException("잘못된 토큰입니다.");
-            }
-
-            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+    public ResponseEntity<String> deleteComment(Long blogId, Long commentId, User user) {
 
             Blog blog = blogRepository.findById(blogId).orElseThrow(
                     () -> new IllegalArgumentException("존재하지 않는 글입니다.")
@@ -118,14 +73,10 @@ public class CommentService {
                     () -> new IllegalArgumentException("존재하지 않는 댓글입니다.")
             );
 
-
             if(user.getRole() == UserRoleEnum.USER && !comment.getUser().getUsername().equals(user.getUsername())) {
                 throw new IllegalArgumentException("해당 사용자가 작성한 댓글이 아닙니다.");
             }
             commentRepository.deleteById(commentId);
             return new ResponseEntity<>("성공", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("실패", HttpStatus.BAD_REQUEST);
-        }
     }
 }

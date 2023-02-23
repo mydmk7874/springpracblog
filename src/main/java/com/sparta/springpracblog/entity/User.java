@@ -18,11 +18,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Pattern(regexp = "[a-z1-9]{4,10}")
+
     @Column(unique = true)
     private String username;
 
-    @Pattern(regexp = "[a-zA-Z1-9`~!@#$%^&*()\\-_=+]{8,15}")
     private String password;
 
     @Column(nullable = false)

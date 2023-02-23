@@ -7,10 +7,13 @@ import com.sparta.springpracblog.entity.UserRoleEnum;
 import com.sparta.springpracblog.jwt.JwtUtil;
 import com.sparta.springpracblog.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.util.Optional;
 
 @Service
@@ -20,12 +23,14 @@ public class UserService {
     private final UserRepository userRepository;
 
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
     private static final String ADMIN_TOKEN = "AAABnvxRVklrnYxKZ0aHgTBcXukeZygoC";
+
 
     @Transactional
     public void signup(SignupRequestDto signupRequestDto) {
         String username = signupRequestDto.getUsername();
-        String password = signupRequestDto.getPassword();
+        String password = passwordEncoder.encode(signupRequestDto.getPassword());
 
         Optional<User> found = userRepository.findByUsername(username);
 
@@ -55,7 +60,7 @@ public class UserService {
                 () -> new NullPointerException("등록된 사용자가 없습니다.")
         );
 
-        if(!user.getPassword().equals(password)) {
+        if(!passwordEncoder.matches(password, user.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 틀립니다.");
         }
 
